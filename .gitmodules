@@ -4,3 +4,6 @@
 [submodule "fondry__lottery/lib/forge-std"]
 	path = fondry__lottery/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "foundry__lottery/lib/forge-std"]
+	path = foundry__lottery/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
