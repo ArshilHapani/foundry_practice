@@ -20,7 +20,8 @@ contract DeployLottery is Script {
                 networkConfig.subId,
                 networkConfig.vrfCoordinator
             ) = createSubscription.createSubscription(
-                networkConfig.vrfCoordinator
+                networkConfig.vrfCoordinator,
+                networkConfig.account
             );
 
             // fund subscription
@@ -28,11 +29,12 @@ contract DeployLottery is Script {
             fundSubscription.fundSubscription(
                 networkConfig.vrfCoordinator,
                 networkConfig.subId,
-                networkConfig.link
+                networkConfig.link,
+                networkConfig.account
             );
         }
 
-        vm.startBroadcast();
+        vm.startBroadcast(networkConfig.account);
         Lottery lottery = new Lottery(
             networkConfig.entranceFee,
             networkConfig.interval,
@@ -47,7 +49,8 @@ contract DeployLottery is Script {
         addConsumer.addConsumer(
             address(lottery),
             networkConfig.vrfCoordinator,
-            networkConfig.subId
+            networkConfig.subId,
+            networkConfig.account
         );
 
         return (lottery, helperConfig);

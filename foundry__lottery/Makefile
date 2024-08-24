@@ -1,5 +1,8 @@
 -include .env
 
+# means that these commands are not files and don't do any weird thing with them
+.PHONY: build install test coverage
+
 build:; forge build
 
 fund_manually:
@@ -9,14 +12,15 @@ fund_manually:
 
 install:
 	@echo "Installing packages"
-	@forge install smartcontractkit/chainlink-brownie-contracts --no-commit
-	@forge install transmissions11/solmate --no-commit
-	@forge install Cyfrin/foundry-devops --no-commit
+	@forge install smartcontractkit/chainlink-brownie-contracts@1.1.1 --no-commit	
+	@forge install transmissions11/solmate@v6 --no-commit
+	@forge install Cyfrin/foundry-devops@0.2.2 --no-commit
+	@forge install foundry-rs/forge-std@v1.8.2 --no-commit
 
-runTests:
+test:
 	@echo "Running tests"
 	@forge test
 
-coverage_report:
+coverage:
 	@echo "Generating coverage report"
-	@forge coverage --report debug > coverage_report.txt
+	@forge coverage --report debug > coverage_report.
