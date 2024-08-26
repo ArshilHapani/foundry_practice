@@ -4,9 +4,8 @@ out = "out"
 libs = ["lib"]
 solc = "0.8.24"
 
-
-# for foundry devops
 fs_permissions = [
     { access = "read", path = "./broadcast" },
     { access = "read", path = "./reports" },
+    { access = "read", path = "./images" },
 ]
