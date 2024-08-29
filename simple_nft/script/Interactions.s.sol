@@ -51,3 +51,19 @@ contract MintMoodNFT is Script, CodeConstants {
         vm.stopBroadcast();
     }
 }
+
+contract FlipMoodNFT is Script, CodeConstants {
+    function run() public {
+        address mostRecentDeployed = DevOpsTools.get_most_recent_deployment(
+            "MoodNFT",
+            block.chainid
+        );
+        flipMood(mostRecentDeployed);
+    }
+
+    function flipMood(address _moodNFTAddress) public {
+        vm.startBroadcast();
+        MoodNFT(_moodNFTAddress).flipMood(1);
+        vm.stopBroadcast();
+    }
+}
