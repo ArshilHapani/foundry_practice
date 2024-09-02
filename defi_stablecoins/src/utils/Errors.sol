@@ -5,4 +5,9 @@ library Errors {
     error DecentralizedStableCoin__MustBeGreaterThanZero();
     error DecentralizedStableCoin__BurnAmountExceedsBalance();
     error DecentralizedStableCoin__NotZeroAddress();
+
+    error DSCEngine__MustBeGreaterThanZero();
+    error DSCEngine__ArrayLengthMismatch();
+    error DSCEngine__NotAllowedToken();
+    error DSCEngine__TransferFailed();
 }
