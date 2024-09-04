@@ -10,4 +10,5 @@ library Errors {
     error DSCEngine__ArrayLengthMismatch();
     error DSCEngine__NotAllowedToken();
     error DSCEngine__TransferFailed();
+    error DSCEngine__HealthFactorTooLow(uint256 _healthFactor);
 }
