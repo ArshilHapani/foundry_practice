@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.24;
 
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
@@ -81,6 +81,11 @@ contract DSCEngine is ReentrancyGuard {
         s_dscMinted[msg.sender] += _amountDSCToMint;
         // prevent user from minting more DSC than the value of the collateral
         _revertIfHealthFactorIsBroken(msg.sender);
+        bool minted = i_decentralizedStableCoin.mint(msg.sender, _amountDSCToMint);
+
+        if (!minted) {
+            revert Errors.DSCEngine__MintFailed();
+        }
     }
 
     function redeemCollateralForDsc() external {
