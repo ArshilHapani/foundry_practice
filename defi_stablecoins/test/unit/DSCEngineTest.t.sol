@@ -44,7 +44,6 @@ contract DSCEngineTest is Test {
     function testGetUsdValue() external {
         uint256 ethAmount = 10 ether;
         uint256 expected = 20000e18;
-
         uint256 actual = engine.getUSDValue(wEth, ethAmount);
 
         assertEq(actual, expected);
