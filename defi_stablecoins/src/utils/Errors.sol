@@ -12,4 +12,6 @@ library Errors {
     error DSCEngine__TransferFailed();
     error DSCEngine__HealthFactorTooLow(uint256 _healthFactor);
     error DSCEngine__MintFailed();
+    error DSCEngine__HealthFactorNotBroken();
+    error DSCEngine__HealthFactorNotImproved();
 }

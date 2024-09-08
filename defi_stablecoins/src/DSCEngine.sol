@@ -28,7 +28,8 @@ contract DSCEngine is ReentrancyGuard {
     uint256 private constant PRECISION = 1e18;
     uint256 private constant LIQUIDATION_THRESHOLD = 50; // 200% over collateralized (double)
     uint256 private constant LIQUIDATION_PRECISION = 100;
-    uint256 private constant MIN_HEALTH_FACTOR = 1;
+    uint256 private constant MIN_HEALTH_FACTOR = 1e18;
+    uint256 private constant LIQUIDATION_BONUS = 10;
 
     DecentralizedStableCoin private immutable i_decentralizedStableCoin;
 
@@ -50,7 +51,7 @@ contract DSCEngine is ReentrancyGuard {
         i_decentralizedStableCoin = DecentralizedStableCoin(_dscAddress);
     }
     /**
-     *  @notice this function will deposit collateral and mint DSC in one transaction
+     * @notice this function will deposit collateral and mint DSC in one transaction
      * @param _tokenCollateralAddress Which token to deposit as collateral (ETH, BTC)
      * @param _amountCollateral Amount of token to deposit as collateral
      * @param _amountDSCToMint Amount of DSC to mint
@@ -113,6 +114,7 @@ contract DSCEngine is ReentrancyGuard {
     }
 
     /**
+     * redeemCollateral
      * @notice for redeeming collateral the health factor should be greater than 1
      */
     function redeemCollateral(address _tokenCollateralAddress, uint256 _amountCollateral)
@@ -120,31 +122,60 @@ contract DSCEngine is ReentrancyGuard {
         moreThanZero(_amountCollateral)
         nonReentrant
     {
-        s_collateralDeposited[msg.sender][_tokenCollateralAddress] -= _amountCollateral;
-        emit DSCEngineEvents.CollateralRedeemed(msg.sender, _tokenCollateralAddress, _amountCollateral);
-
-        bool success = IERC20(_tokenCollateralAddress).transfer(msg.sender, _amountCollateral);
-
-        if (!success) {
-            revert Errors.DSCEngine__TransferFailed();
-        }
-
+        _redeemCollateral(_tokenCollateralAddress, _amountCollateral, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
     function burnDsc(uint256 _amount) public moreThanZero(_amount) {
-        s_dscMinted[msg.sender] -= _amount;
-
-        bool success = i_decentralizedStableCoin.transferFrom(msg.sender, address(this), _amount);
-        if (!success) {
-            revert Errors.DSCEngine__TransferFailed();
-        }
-        i_decentralizedStableCoin.burn(_amount);
+        _burnDSC(_amount, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function liquidate() external {
-        // Logic for liquidating
+    /**
+     * If we do not start nearing undercollateralization, we will need someone to liquidate the user
+     *
+     * $100 ETH back $50 DSC
+     * If eth price drops to $20, then $20 ETH doesn't worth $50 DSC
+     *
+     * $75 Backing $50 DSC
+     * Liquidator take $75 backing and burns $50 DSC
+     */
+
+    /**
+     *
+     * @param _collateral Token address of the collateral
+     * @param _user address of the user who has broken health factor
+     * @param _debtToCover total debt to cover
+     *
+     * @notice we can partially liquidate the user
+     * @notice you will get liquidation bonus for taking the users fund (take $75 collateral and provide $50 DSC)
+     */
+    function liquidate(address _collateral, address _user, uint256 _debtToCover)
+        external
+        moreThanZero(_debtToCover)
+        nonReentrant
+    {
+        // Need to check their health factor
+        uint256 startingUserHealthFactor = _healthFactor(_user);
+        if (startingUserHealthFactor >= MIN_HEALTH_FACTOR) {
+            revert Errors.DSCEngine__HealthFactorNotBroken();
+        }
+
+        /**
+         * we want to burn their DSC "debt"
+         * and take their collateral
+         * Bad user: $140 ETH $100 DSC
+         * debtToCover = $100
+         */
+        uint256 tokenAmountOfDebtToCover = getTokenAmountFromUsd(_collateral, _debtToCover);
+        _redeemCollateral(_collateral, tokenAmountOfDebtToCover, _user, msg.sender);
+        _burnDSC(_debtToCover, _user, msg.sender);
+
+        uint256 endingUserHealthFactor = _healthFactor(_user);
+        if (endingUserHealthFactor <= startingUserHealthFactor) {
+            revert Errors.DSCEngine__HealthFactorNotImproved();
+        }
+        _revertIfHealthFactorIsBroken(msg.sender);
     }
 
     function getHealthFactor() external view {
@@ -168,15 +199,46 @@ contract DSCEngine is ReentrancyGuard {
         return ((uint256(price) * ADDITIONAL_PRICE_PRECISION) * _amount) / PRECISION;
     }
 
-    ///////////////////////// Internal Functions ///////////////////////
-
+    function getTokenAmountFromUsd(address _token, uint256 _usdAmount) public view returns (uint256) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[_token]);
+        (, int256 price,,,) = priceFeed.latestRoundData();
+        uint256 tokenAmountFromDebtCover = (_usdAmount * PRECISION) / (uint256(price) * ADDITIONAL_PRICE_PRECISION);
+        // 10% bonus
+        uint256 bonusCollateral = (tokenAmountFromDebtCover * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
+        uint256 totalCollateralToRedeem = tokenAmountFromDebtCover + bonusCollateral;
+        return totalCollateralToRedeem;
+    }
     // 1, Check health factor. Do they have enough collateral
     // 2. Revert if health factor is broken
+
     function _revertIfHealthFactorIsBroken(address _user) internal view {
         uint256 userHealthFactor = _healthFactor(_user);
         if (userHealthFactor < MIN_HEALTH_FACTOR) {
             revert Errors.DSCEngine__HealthFactorTooLow(userHealthFactor);
         }
+    }
+
+    function _redeemCollateral(address _tokenCollateralAddress, uint256 _amountCollateral, address _from, address _to)
+        private
+    {
+        s_collateralDeposited[_from][_tokenCollateralAddress] -= _amountCollateral;
+        emit DSCEngineEvents.CollateralRedeemed(_from, _to, _tokenCollateralAddress, _amountCollateral);
+
+        bool success = IERC20(_tokenCollateralAddress).transfer(_to, _amountCollateral);
+
+        if (!success) {
+            revert Errors.DSCEngine__TransferFailed();
+        }
+    }
+
+    function _burnDSC(uint256 _amount, address _onBehalfOf, address _dscFrom) private {
+        s_dscMinted[_onBehalfOf] -= _amount;
+
+        bool success = i_decentralizedStableCoin.transferFrom(_dscFrom, address(this), _amount);
+        if (!success) {
+            revert Errors.DSCEngine__TransferFailed();
+        }
+        i_decentralizedStableCoin.burn(_amount);
     }
 
     /**
