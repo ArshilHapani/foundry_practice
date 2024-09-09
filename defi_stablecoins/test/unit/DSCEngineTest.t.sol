@@ -37,6 +37,21 @@ contract DSCEngineTest is Test {
         ERC20Mock(wEth).mint(USER, STARTING_ERC20_BALANCE);
     }
 
+    ///////////////////////////////
+    //// constructor test ////////
+    /////////////////////////////a
+
+    address[] public tokenAddresses;
+    address[] public priceFeedAddresses;
+
+    function testConstructorIfTokenAddressLengthAreInvalid() external {
+        tokenAddresses.push(wEth);
+        priceFeedAddresses.push(ethUSDPriceFeed);
+        tokenAddresses.push(wBtc);
+        vm.expectRevert(Errors.DSCEngine__ArrayLengthMismatch.selector);
+        new DSCEngine(tokenAddresses, priceFeedAddresses, address(dsc));
+    }
+
     //////////////////////////
     //// price feeds ////////
     ////////////////////////
@@ -47,6 +62,12 @@ contract DSCEngineTest is Test {
         uint256 actual = engine.getUSDValue(wEth, ethAmount);
 
         assertEq(actual, expected);
+    }
+
+    function testGetTokenAmountFromUSD() external {
+        uint256 usdAmount = 100 ether;
+        uint256 expected = 0.05 ether;
+        // TODO
     }
 
     ///////////////////////////////
