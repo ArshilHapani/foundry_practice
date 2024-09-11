@@ -66,8 +66,11 @@ contract DSCEngineTest is Test {
 
     function testGetTokenAmountFromUSD() external {
         uint256 usdAmount = 100 ether;
-        uint256 expected = 0.05 ether;
-        // TODO
+        uint256 expected = 0.055 ether;
+
+        uint256 actualWeth = engine.getTokenAmountFromUsd(wEth, usdAmount);
+
+        assertEq(actualWeth, expected);
     }
 
     ///////////////////////////////
@@ -81,5 +84,32 @@ contract DSCEngineTest is Test {
         vm.expectRevert(Errors.DSCEngine__MustBeGreaterThanZero.selector);
         engine.depositCollateral(wEth, 0);
         vm.stopPrank();
+    }
+
+    function testRevertIfCollateralIsNotApproved() external {
+        ERC20Mock namiToken = new ERC20Mock("Nami", "NAMI", USER, AMOUNT_COLLATERAL);
+
+        vm.startPrank(USER);
+
+        vm.expectRevert(Errors.DSCEngine__NotAllowedToken.selector);
+        engine.depositCollateral(address(namiToken), AMOUNT_COLLATERAL);
+        vm.stopPrank();
+    }
+
+    function testCanDepositCollateralAndGetAccountInfo() external depositCollateral {
+        (uint256 totalDSCMinted, uint256 collateralValueInUSD) = engine.getAccountInformation(USER);
+
+        uint256 expectedDepositedAmount = engine.getTokenAmountFromUsd(wEth, collateralValueInUSD);
+
+        assertEq(totalDSCMinted, 0);
+        assertEq(AMOUNT_COLLATERAL, expectedDepositedAmount);
+    }
+
+    modifier depositCollateral() {
+        vm.startPrank(USER);
+        ERC20Mock(wEth).approve(address(engine), AMOUNT_COLLATERAL);
+        engine.depositCollateral(wEth, AMOUNT_COLLATERAL);
+        vm.stopPrank();
+        _;
     }
 }
