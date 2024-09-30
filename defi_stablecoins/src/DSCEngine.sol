@@ -208,9 +208,17 @@ contract DSCEngine is ReentrancyGuard {
         uint256 totalCollateralToRedeem = tokenAmountFromDebtCover + bonusCollateral;
         return totalCollateralToRedeem;
     }
+
+    function calculateHealthFactor(uint256 _totalDSCMinted, uint256 _totalCollateralValueInUSD)
+        public
+        pure
+        returns (uint256)
+    {
+        return _calculateHealthFactor(_totalDSCMinted, _totalCollateralValueInUSD);
+    }
+
     // 1, Check health factor. Do they have enough collateral
     // 2. Revert if health factor is broken
-
     function _revertIfHealthFactorIsBroken(address _user) internal view {
         uint256 userHealthFactor = _healthFactor(_user);
         if (userHealthFactor < MIN_HEALTH_FACTOR) {
@@ -260,6 +268,18 @@ contract DSCEngine is ReentrancyGuard {
     {
         totalDSCMinted = s_dscMinted[_user];
         totalCollateralValue = getTotalCollateralValue(_user);
+    }
+
+    function _calculateHealthFactor(uint256 _totalDSCMinted, uint256 _totalCollateralValueInUSD)
+        private
+        pure
+        returns (uint256)
+    {
+        if (_totalDSCMinted == 0) return type(uint256).max;
+        uint256 collateralAdjustedFromThreshold =
+            (_totalCollateralValueInUSD * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+
+        return (collateralAdjustedFromThreshold * 1e18) / _totalDSCMinted;
     }
 
     function getAccountInformation(address _user) external view returns (uint256, uint256) {
