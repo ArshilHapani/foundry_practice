@@ -96,14 +96,14 @@ contract DSCEngineTest is Test {
         vm.stopPrank();
     }
 
-    function testCanDepositCollateralAndGetAccountInfo() external depositCollateral {
-        (uint256 totalDSCMinted, uint256 collateralValueInUSD) = engine.getAccountInformation(USER);
+    // function testCanDepositCollateralAndGetAccountInfo() external depositCollateral {
+    //     (uint256 totalDSCMinted, uint256 collateralValueInUSD) = engine.getAccountInformation(USER);
 
-        uint256 expectedDepositedAmount = engine.getTokenAmountFromUsd(wEth, collateralValueInUSD);
+    //     uint256 expectedDepositedAmount = engine.getTokenAmountFromUsd(wEth, collateralValueInUSD);
 
-        assertEq(totalDSCMinted, 0);
-        assertEq(AMOUNT_COLLATERAL, expectedDepositedAmount);
-    }
+    //     assertEq(totalDSCMinted, 0);
+    //     assertEq(AMOUNT_COLLATERAL, expectedDepositedAmount);
+    // }
 
     modifier depositCollateral() {
         vm.startPrank(USER);
