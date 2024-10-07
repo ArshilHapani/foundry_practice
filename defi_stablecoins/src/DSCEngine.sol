@@ -178,37 +178,6 @@ contract DSCEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function getHealthFactor() external view {
-        // Logic for getting health factor
-    }
-
-    function getTotalCollateralValue(address _user) public view returns (uint256) {
-        address[] memory m_collateralToken = s_collateralTokens; // gas optimization
-        uint256 totalCollateralValue;
-        for (uint256 i = 0; i < m_collateralToken.length; i++) {
-            address token = m_collateralToken[i];
-            uint256 amount = s_collateralDeposited[_user][token];
-            totalCollateralValue += getUSDValue(token, amount);
-        }
-        return totalCollateralValue;
-    }
-
-    function getUSDValue(address _token, uint256 _amount) public view returns (uint256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[_token]);
-        (, int256 price,,,) = priceFeed.latestRoundData();
-        return ((uint256(price) * ADDITIONAL_PRICE_PRECISION) * _amount) / PRECISION;
-    }
-
-    function getTokenAmountFromUsd(address _token, uint256 _usdAmount) public view returns (uint256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[_token]);
-        (, int256 price,,,) = priceFeed.latestRoundData();
-        uint256 tokenAmountFromDebtCover = (_usdAmount * PRECISION) / (uint256(price) * ADDITIONAL_PRICE_PRECISION);
-        // 10% bonus
-        uint256 bonusCollateral = (tokenAmountFromDebtCover * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
-        uint256 totalCollateralToRedeem = tokenAmountFromDebtCover + bonusCollateral;
-        return totalCollateralToRedeem;
-    }
-
     function calculateHealthFactor(uint256 _totalDSCMinted, uint256 _totalCollateralValueInUSD)
         public
         pure
@@ -282,8 +251,47 @@ contract DSCEngine is ReentrancyGuard {
         return (collateralAdjustedFromThreshold * 1e18) / _totalDSCMinted;
     }
 
+    function getHealthFactor(address user_) external view returns (uint256) {
+        return _healthFactor(user_);
+    }
+
+    function getTotalCollateralValue(address _user) public view returns (uint256) {
+        address[] memory m_collateralToken = s_collateralTokens; // gas optimization
+        uint256 totalCollateralValue;
+        for (uint256 i = 0; i < m_collateralToken.length; i++) {
+            address token = m_collateralToken[i];
+            uint256 amount = s_collateralDeposited[_user][token];
+            totalCollateralValue += getUSDValue(token, amount);
+        }
+        return totalCollateralValue;
+    }
+
+    function getUSDValue(address _token, uint256 _amount) public view returns (uint256) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[_token]);
+        (, int256 price,,,) = priceFeed.latestRoundData();
+        return ((uint256(price) * ADDITIONAL_PRICE_PRECISION) * _amount) / PRECISION;
+    }
+
+    function getTokenAmountFromUsd(address _token, uint256 _usdAmount) public view returns (uint256) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[_token]);
+        (, int256 price,,,) = priceFeed.latestRoundData();
+        uint256 tokenAmountFromDebtCover = (_usdAmount * PRECISION) / (uint256(price) * ADDITIONAL_PRICE_PRECISION);
+        // 10% bonus
+        uint256 bonusCollateral = (tokenAmountFromDebtCover * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
+        uint256 totalCollateralToRedeem = tokenAmountFromDebtCover + bonusCollateral;
+        return totalCollateralToRedeem;
+    }
+
     function getAccountInformation(address _user) external view returns (uint256, uint256) {
         return _getAccountInformation(_user);
+    }
+
+    function getCollateralTokens() external view returns (address[] memory) {
+        return s_collateralTokens;
+    }
+
+    function getCollateralBalanceOfUser(address user_, address token_) external view returns (uint256) {
+        return s_collateralDeposited[user_][token_];
     }
 
     /////////////////////// Modifiers ///////////////////////
