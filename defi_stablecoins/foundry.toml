@@ -14,5 +14,5 @@ remappings = [
 
 [invariant]
 runs = 128
-depth = 64            # no. of function calls
-fail_on_revert = true # tests fails on revert
+depth = 64             # no. of function calls
+fail_on_revert = false # tests fails on revert

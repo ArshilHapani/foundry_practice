@@ -14,4 +14,6 @@ library Errors {
     error DSCEngine__MintFailed();
     error DSCEngine__HealthFactorNotBroken();
     error DSCEngine__HealthFactorNotImproved();
+
+    error OracleLib__StalePrice();
 }

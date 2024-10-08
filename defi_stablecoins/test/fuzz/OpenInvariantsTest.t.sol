@@ -5,7 +5,7 @@
 //  * 1. The total DSC minted must be less than deposited collateral
 //  * 2. Getter view functions should never revert
 //  */
-// pragma solidity 0.8.24;
+pragma solidity 0.8.24;
 
 // import {Test} from "forge-std/Test.sol";
 // import {StdInvariant} from "forge-std/StdInvariant.sol";

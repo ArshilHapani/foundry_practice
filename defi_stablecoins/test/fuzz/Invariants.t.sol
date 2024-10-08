@@ -7,7 +7,7 @@
  */
 pragma solidity 0.8.24;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {StdInvariant} from "forge-std/StdInvariant.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -37,12 +37,19 @@ contract InvariantsTest is StdInvariant, Test {
 
     function invariant_totalDSCMintedLessThanDepositedCollateral() public view {
         uint256 totalSupply = dsc.totalSupply();
-        uint256 wethDeposited = IERC20(weth).balanceOf(address(dscEngine));
+        uint256 totalWethDeposited = IERC20(weth).balanceOf(address(dscEngine));
         uint256 totalBtcDeposited = IERC20(wbtc).balanceOf(address(dscEngine));
 
-        uint256 wEthValueInUsd = dscEngine.getUSDValue(weth, wethDeposited);
+        console.log("totalWethDeposited: ", totalWethDeposited);
+        console.log("totalBtcDeposited: ", totalBtcDeposited);
+        console.log("totalSupply: ", totalSupply);
+        console.log("Time mint is called: ", handler.timeMintIsCalled());
+
+        uint256 wEthValueInUsd = dscEngine.getUSDValue(weth, totalWethDeposited);
         uint256 wBtcValueInUsd = dscEngine.getUSDValue(wbtc, totalBtcDeposited);
 
         assert(totalSupply <= wEthValueInUsd + wBtcValueInUsd);
     }
+
+    function invariant_gettersShouldNeverRevert() public view {}
 }

@@ -9,6 +9,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/Ag
 import {DecentralizedStableCoin} from "./DecentralizedStableCoin.sol";
 import {Errors} from "./utils/Errors.sol";
 import {DSCEngineEvents} from "./utils/Events.sol";
+import {OracleLib} from "./utils/OracleLib.sol";
 
 /*
  * @title DSCEngine
@@ -24,6 +25,8 @@ import {DSCEngineEvents} from "./utils/Events.sol";
  * @notice This contract is core of DSC system. It handles all the logic for minting and redeeming DSC, as well as depositing and withdrawing collateral.
  */
 contract DSCEngine is ReentrancyGuard {
+    using OracleLib for AggregatorV3Interface;
+
     uint256 private constant ADDITIONAL_PRICE_PRECISION = 1e10;
     uint256 private constant PRECISION = 1e18;
     uint256 private constant LIQUIDATION_THRESHOLD = 50; // 200% over collateralized (double)
@@ -225,8 +228,8 @@ contract DSCEngine is ReentrancyGuard {
     function _healthFactor(address _user) private view returns (uint256) {
         // required field -> DSC minted, total collateral value (USD)
         (uint256 totalDSCMinted, uint256 collateralValueInUSD) = _getAccountInformation(_user);
+        if (totalDSCMinted == 0) return type(uint256).max;
         uint256 collateralAdjustedThreshold = (collateralValueInUSD * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
-
         return (collateralAdjustedThreshold * PRECISION) / totalDSCMinted; // < 1 means liquidated
     }
 
@@ -268,13 +271,13 @@ contract DSCEngine is ReentrancyGuard {
 
     function getUSDValue(address _token, uint256 _amount) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[_token]);
-        (, int256 price,,,) = priceFeed.latestRoundData();
+        (, int256 price,,,) = priceFeed.staleCheckLatestRoundData();
         return ((uint256(price) * ADDITIONAL_PRICE_PRECISION) * _amount) / PRECISION;
     }
 
     function getTokenAmountFromUsd(address _token, uint256 _usdAmount) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[_token]);
-        (, int256 price,,,) = priceFeed.latestRoundData();
+        (, int256 price,,,) = priceFeed.staleCheckLatestRoundData();
         uint256 tokenAmountFromDebtCover = (_usdAmount * PRECISION) / (uint256(price) * ADDITIONAL_PRICE_PRECISION);
         // 10% bonus
         uint256 bonusCollateral = (tokenAmountFromDebtCover * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
@@ -288,6 +291,10 @@ contract DSCEngine is ReentrancyGuard {
 
     function getCollateralTokens() external view returns (address[] memory) {
         return s_collateralTokens;
+    }
+
+    function getCollateralTokenPriceFeed(address token_) external view returns (address) {
+        return s_priceFeeds[token_];
     }
 
     function getCollateralBalanceOfUser(address user_, address token_) external view returns (uint256) {
