@@ -49,3 +49,9 @@
 [submodule "merkle_airdrop_foundry/lib/openzeppelin-contracts"]
 	path = merkle_airdrop_foundry/lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
+[submodule "merkle_airdrop_foundry/lib/murky"]
+	path = merkle_airdrop_foundry/lib/murky
+	url = https://github.com/dmfxyz/murky
+[submodule "merkle_airdrop_foundry/lib/foundry-devops"]
+	path = merkle_airdrop_foundry/lib/foundry-devops
+	url = https://github.com/cyfrin/foundry-devops
