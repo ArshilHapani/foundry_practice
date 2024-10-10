@@ -19,6 +19,7 @@ contract MerkleAirdropTest is ZkSyncChainChecker, Test {
     bytes32[] public PROOF = [p1, p2];
 
     address user;
+    address public gasPayer;
     uint256 userPrivKey;
 
     NexerToken nexerToken;
@@ -26,6 +27,7 @@ contract MerkleAirdropTest is ZkSyncChainChecker, Test {
 
     function setUp() external {
         (user, userPrivKey) = makeAddrAndKey("user");
+        gasPayer = makeAddr("gasPayer");
         if (!isZkSyncChain()) {
             DeployMerkleAirdrop deployMerkleAirdrop = new DeployMerkleAirdrop();
             (merkleAirdrop, nexerToken) = deployMerkleAirdrop.deployMerkleAirdrop();
@@ -39,9 +41,12 @@ contract MerkleAirdropTest is ZkSyncChainChecker, Test {
 
     function testUserCanClaim() public {
         uint256 startingBalance = nexerToken.balanceOf(user);
+        bytes32 digest = merkleAirdrop.getMessageHash(user, AMOUNT_TO_CLAIM);
 
-        vm.prank(user);
-        merkleAirdrop.claim(user, AMOUNT_TO_CLAIM, PROOF);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(userPrivKey, digest);
+
+        vm.prank(gasPayer);
+        merkleAirdrop.claim(user, AMOUNT_TO_CLAIM, PROOF, v, r, s);
 
         uint256 endingBalance = nexerToken.balanceOf(user);
 
