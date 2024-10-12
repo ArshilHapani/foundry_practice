@@ -55,3 +55,6 @@
 [submodule "merkle_airdrop_foundry/lib/foundry-devops"]
 	path = merkle_airdrop_foundry/lib/foundry-devops
 	url = https://github.com/cyfrin/foundry-devops
+[submodule "proxies__foundry/lib/forge-std"]
+	path = proxies__foundry/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
