@@ -7,7 +7,8 @@ NETWORK_ARGS := --rpc-url $(RPC_URL) --account $(ACCOUNT_NAME) --broadcast
 install :
 		@forge install openzeppelin/openzeppelin-contracts@v5.0.2 --no-commit
 		@forge install dmfxyz/murky --no-commit
-		@forge install cyfrin/foundry-devops --no-commit
+		@forge install cyfrin/foundry-devops@0.2.3 --no-commit
+
 
 setupTargetFiles:
 		@forge script script/GenerateInput.s.sol
