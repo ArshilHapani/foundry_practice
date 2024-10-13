@@ -28,8 +28,6 @@ contract SmallProxy is Proxy {
             valueAtSlotZero := sload(0)
         }
     }
-
-    receive() external payable {}
 }
 
 contract ImplementationA {
