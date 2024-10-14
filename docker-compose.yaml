@@ -1,0 +1,32 @@
+# This file is used to run the local zksync instance with the help of podman or docker
+version: "3"
+
+services:
+  zksync:
+    image: matterlabs/zksync-local
+    ports:
+      - "8545:8545"
+      - "3050:3050"
+      - "8020:8020"
+      - "27017:27017"
+    environment:
+      ZKSYNC_ENV: dev
+      DATABASE_URL: postgres://postgres:password@db:5432/zksync_local
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: zksync_local
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
