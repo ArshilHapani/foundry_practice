@@ -23,14 +23,6 @@ jobs:
 
       - name: Run Forge fmt, build and test inside each contract
         run: |
-          for d in ./*; do
-            if [ -d "$d" ]; then
-              echo "Running tests in $d"
-              cd $d
-              forge fmt --check
-              forgr build --sizes
-              forge test -vvv
-              cd ../
-            fi
-          done
+          chmod +x ./scripts/execute-action.sh
+          ./scripts/execute-action.sh
         id: test
