@@ -1,0 +1,35 @@
+name: Test Contracts
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  test_contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 # copy the source code to the runner
+        with:
+          submodules: recursive
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Show Forge version
+        run: |
+          forge --version
+
+      - name: Run Forge fmt, build and test inside each contract
+        run: |
+          for d in ./*; do
+            if [ -d "$d" ]; then
+              echo "Running tests in $d"
+              cd $d
+              forge fmt --check
+              forgr build --sizes
+              forge test -vvv
+              cd ../
+            fi
+          done
+        id: test
