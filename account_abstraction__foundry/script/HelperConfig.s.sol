@@ -15,12 +15,15 @@ contract HelperConfig {
     uint256 constant ZKSYNC_SEPOLIA_CHAINID = 300;
     uint256 constant LOCAL_CHAIN_ID = 31337;
     address constant BURNER_WALLET = 0x7de7080aB6FFb3F1435378f3E7F15DfAE92c6F3a;
+    address constant DEFAULT_SENDER = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
 
     NetworkConfig public localNetworkConfig;
     mapping(uint256 chainId => NetworkConfig) networkConfigs;
 
     constructor() {
         networkConfigs[ETH_SEPOLIA_CHAINID] = getEthSepoliaConfig();
+        networkConfigs[ZKSYNC_SEPOLIA_CHAINID] = getZkSyncSepoliaConfig();
+        networkConfigs[LOCAL_CHAIN_ID] = getOrCreateAnvilConfig();
     }
 
     function getConfig() public view returns (NetworkConfig memory) {
@@ -53,5 +56,7 @@ contract HelperConfig {
             return localNetworkConfig;
         }
         // deploy mocks...
+
+        return NetworkConfig(address(0), 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38);
     }
 }

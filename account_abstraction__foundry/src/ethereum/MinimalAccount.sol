@@ -11,7 +11,7 @@ import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 import {Errors} from "./utils/Errors.sol";
 
-contract MinimumAccount is IAccount, Ownable {
+contract MinimalAccount is IAccount, Ownable {
     IEntryPoint private immutable i_entryPoint;
 
     constructor(address _entrypoint) Ownable(msg.sender) {
@@ -29,7 +29,7 @@ contract MinimumAccount is IAccount, Ownable {
         _payPreFund(missingAccountFunds);
     }
 
-    function execute(address _dest, uint256 _amount, bytes calldata _funcData) external {
+    function execute(address _dest, uint256 _amount, bytes calldata _funcData) external onlyEntrypointOrOwner {
         (bool success, bytes memory data) = _dest.call{value: _amount}(_funcData);
         if (!success) {
             revert Errors.MinimumAccount__CallFailed(data);
