@@ -1,4 +1,4 @@
-//SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.25;
 
@@ -52,6 +52,7 @@ contract MinimalAccountTest is Test {
         vm.prank(randomUser);
         vm.expectRevert(Errors.MinimumAccount__RequireEntryPointToCallThisFunction.selector);
         minimalAccount.execute(dest, value, functionData);
+
         // assert
         assertEq(usdc.balanceOf(address(minimalAccount)), 0);
     }
