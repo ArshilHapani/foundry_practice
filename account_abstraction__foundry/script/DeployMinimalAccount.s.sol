@@ -5,14 +5,14 @@ import {Script} from "forge-std/Script.sol";
 
 import {MinimalAccount} from "src/ethereum/MinimalAccount.sol";
 
-import {HelperConfig} from "./HelperConfig.s.sol";
+import {HelperConfig, NetworkConfig} from "./HelperConfig.s.sol";
 
 contract DeployMinimalAccount is Script {
     function run() external {}
 
     function deployMinimalAccount() public returns (HelperConfig, MinimalAccount) {
         HelperConfig helperConfig = new HelperConfig();
-        HelperConfig.NetworkConfig memory config = helperConfig.getConfig();
+        NetworkConfig memory config = helperConfig.getConfig();
 
         vm.startBroadcast(config.account);
         MinimalAccount minimalAccount = new MinimalAccount(config.entryPoint);

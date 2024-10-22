@@ -1,21 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.25;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, console2} from "forge-std/Script.sol";
+import {EntryPoint} from "account-abstraction/core/EntryPoint.sol";
 
 error HelperConfig__InvalidChainId();
 
-contract HelperConfig {
-    struct NetworkConfig {
-        address entryPoint;
-        address account;
-    }
+struct NetworkConfig {
+    address entryPoint;
+    address account;
+}
 
+contract HelperConfig is Script {
     uint256 constant ETH_SEPOLIA_CHAINID = 11155111;
     uint256 constant ZKSYNC_SEPOLIA_CHAINID = 300;
     uint256 constant LOCAL_CHAIN_ID = 31337;
     address constant BURNER_WALLET = 0x7de7080aB6FFb3F1435378f3E7F15DfAE92c6F3a;
-    address constant DEFAULT_SENDER = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
+    // address constant DEFAULT_SENDER = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
 
     NetworkConfig public localNetworkConfig;
     mapping(uint256 chainId => NetworkConfig) networkConfigs;
@@ -51,12 +52,17 @@ contract HelperConfig {
         return NetworkConfig(address(0), BURNER_WALLET); // native account abstraction
     }
 
-    function getOrCreateAnvilConfig() internal view returns (NetworkConfig memory) {
+    function getOrCreateAnvilConfig() internal returns (NetworkConfig memory) {
         if (localNetworkConfig.account != address(0)) {
             return localNetworkConfig;
         }
         // deploy mocks...
+        console2.log("Deploying mocks for local chain...");
 
-        return NetworkConfig(address(0), 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38);
+        vm.startBroadcast(DEFAULT_SENDER);
+        EntryPoint entryPoint = new EntryPoint();
+        vm.stopBroadcast();
+
+        return NetworkConfig(address(entryPoint), DEFAULT_SENDER);
     }
 }
