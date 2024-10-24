@@ -1,0 +1,29 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_contracts:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: perform action
+        run: |
+          for d in contracts/*; do
+              if [ -d "$d" ]; then
+                  echo "Building contract in $d"
+                  cd $d
+                  cargo build --release
+                  cd ../..
+              fi
+          done
