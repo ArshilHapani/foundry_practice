@@ -13,7 +13,7 @@ contract SendPackedUserOp is Script, CodeConstants {
 
     function run() external {}
 
-    function generateUserOperation(bytes memory callData, NetworkConfig calldata config)
+    function generateUserOperation(bytes memory callData, NetworkConfig calldata config, address sender)
         public
         view
         returns (PackedUserOperation memory)
@@ -21,8 +21,8 @@ contract SendPackedUserOp is Script, CodeConstants {
         /**
          * 1. Generate unsigned user operation
          */
-        uint256 nonce = vm.getNonce(config.account);
-        PackedUserOperation memory userOps = _generateUnsignedUserOperation(callData, config.account, nonce);
+        uint256 nonce = vm.getNonce(sender) - 1;
+        PackedUserOperation memory userOps = _generateUnsignedUserOperation(callData, sender, nonce);
 
         // 2. get userOp hash
         bytes32 userOpHash = IEntryPoint(config.entryPoint).getUserOpHash(userOps);
@@ -34,8 +34,9 @@ contract SendPackedUserOp is Script, CodeConstants {
         bytes32 s;
         if (block.chainid == 31337) {
             (v, r, s) = vm.sign(DEFAULT_PRIVATE_KEY_ANVIL, digest);
+        } else {
+            (v, r, s) = vm.sign(config.account, digest);
         }
-        (v, r, s) = vm.sign(config.account, digest);
         userOps.signature = abi.encodePacked(r, s, v);
 
         return userOps;

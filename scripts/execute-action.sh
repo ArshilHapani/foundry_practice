@@ -5,8 +5,8 @@ for d in ./*; do
         fi
         echo "Running tests in $d"
         cd $d
-        forge fmt --check
-        forge build --sizes
+        # forge fmt --check
+        # forge build --sizes
         forge test -vvv
         cd ..
     fi

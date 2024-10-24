@@ -80,7 +80,7 @@ contract MinimalAccountTest is Test {
             abi.encodeWithSelector(MinimalAccount.execute.selector, dest, value, functionData);
 
         PackedUserOperation memory packedUserOperation =
-            sendPackedUserOp.generateUserOperation(executeCallData, networkConfig);
+            sendPackedUserOp.generateUserOperation(executeCallData, networkConfig, address(minimalAccount));
 
         // act
         bytes32 userOperationHash = IEntryPoint(networkConfig.entryPoint).getUserOpHash(packedUserOperation);
@@ -90,5 +90,58 @@ contract MinimalAccountTest is Test {
         assertEq(owner, minimalAccount.owner());
     }
 
-    function testValidationOfUserOps() public {}
+    /**
+     * 1. Sign user ops
+     * 2. Validate user ops
+     * 3. validate output
+     */
+    function testValidationOfUserOps() public {
+        // arrange
+        assertEq(usdc.balanceOf(address(minimalAccount)), 0);
+        uint256 value = 0;
+        address dest = address(usdc);
+
+        bytes memory functionData = abi.encodeWithSelector(ERC20Mock.mint.selector, address(minimalAccount), AMOUNT);
+
+        bytes memory executeCallData =
+            abi.encodeWithSelector(MinimalAccount.execute.selector, dest, value, functionData);
+
+        PackedUserOperation memory packedUserOperation =
+            sendPackedUserOp.generateUserOperation(executeCallData, networkConfig, address(minimalAccount));
+        bytes32 userOperationHash = IEntryPoint(networkConfig.entryPoint).getUserOpHash(packedUserOperation);
+        uint256 missingAccountFunds = 1 ether;
+        // act
+        vm.prank(networkConfig.entryPoint);
+        uint256 validationData =
+            minimalAccount.validateUserOp(packedUserOperation, userOperationHash, missingAccountFunds);
+
+        // assert
+
+        assert(validationData == 0);
+    }
+
+    function testEntrypointCanExecuteCommands() public {
+        // arrange
+        assertEq(usdc.balanceOf(address(minimalAccount)), 0);
+        uint256 value = 0;
+        address dest = address(usdc);
+
+        bytes memory functionData = abi.encodeWithSelector(ERC20Mock.mint.selector, address(minimalAccount), AMOUNT);
+
+        bytes memory executeCallData =
+            abi.encodeWithSelector(MinimalAccount.execute.selector, dest, value, functionData);
+
+        PackedUserOperation memory packedUserOperation =
+            sendPackedUserOp.generateUserOperation(executeCallData, networkConfig, address(minimalAccount));
+        PackedUserOperation[] memory ops = new PackedUserOperation[](1);
+        ops[0] = packedUserOperation;
+
+        // act
+        vm.deal(address(minimalAccount), 2 ether);
+        vm.prank(randomUser); // pretending to be alt mempool node
+        IEntryPoint(networkConfig.entryPoint).handleOps(ops, payable(randomUser));
+
+        // assert
+        assertEq(usdc.balanceOf(address(minimalAccount)), 1 ether);
+    }
 }
