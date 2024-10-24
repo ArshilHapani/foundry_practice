@@ -6,9 +6,9 @@ import {PackedUserOperation} from "account-abstraction/interfaces/PackedUserOper
 import {IEntryPoint} from "account-abstraction/interfaces/IEntryPoint.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
-import {NetworkConfig} from "./HelperConfig.s.sol";
+import {NetworkConfig, CodeConstants} from "./HelperConfig.s.sol";
 
-contract SendPackedUserOp is Script {
+contract SendPackedUserOp is Script, CodeConstants {
     using MessageHashUtils for bytes32;
 
     function run() external {}
@@ -29,7 +29,13 @@ contract SendPackedUserOp is Script {
         bytes32 digest = userOpHash.toEthSignedMessageHash();
 
         // 3. sign it
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(config.account, digest);
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+        if (block.chainid == 31337) {
+            (v, r, s) = vm.sign(DEFAULT_PRIVATE_KEY_ANVIL, digest);
+        }
+        (v, r, s) = vm.sign(config.account, digest);
         userOps.signature = abi.encodePacked(r, s, v);
 
         return userOps;

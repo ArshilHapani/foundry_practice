@@ -6,18 +6,22 @@ import {EntryPoint} from "account-abstraction/core/EntryPoint.sol";
 
 error HelperConfig__InvalidChainId();
 
+abstract contract CodeConstants {
+    uint256 public constant ETH_SEPOLIA_CHAINID = 11155111;
+    uint256 public constant ZKSYNC_SEPOLIA_CHAINID = 300;
+    uint256 public constant LOCAL_CHAIN_ID = 31337;
+    address public constant BURNER_WALLET = 0x7de7080aB6FFb3F1435378f3E7F15DfAE92c6F3a;
+    address public constant DEFAULT_SENDER_ANVIL = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+    uint256 public constant DEFAULT_PRIVATE_KEY_ANVIL =
+        0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
+}
+
 struct NetworkConfig {
     address entryPoint;
     address account;
 }
 
-contract HelperConfig is Script {
-    uint256 constant ETH_SEPOLIA_CHAINID = 11155111;
-    uint256 constant ZKSYNC_SEPOLIA_CHAINID = 300;
-    uint256 constant LOCAL_CHAIN_ID = 31337;
-    address constant BURNER_WALLET = 0x7de7080aB6FFb3F1435378f3E7F15DfAE92c6F3a;
-    // address constant DEFAULT_SENDER = 0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38;
-
+contract HelperConfig is Script, CodeConstants {
     NetworkConfig public localNetworkConfig;
     mapping(uint256 chainId => NetworkConfig) networkConfigs;
 
@@ -59,10 +63,12 @@ contract HelperConfig is Script {
         // deploy mocks...
         console2.log("Deploying mocks for local chain...");
 
-        vm.startBroadcast(DEFAULT_SENDER);
+        vm.startBroadcast(DEFAULT_SENDER_ANVIL);
         EntryPoint entryPoint = new EntryPoint();
         vm.stopBroadcast();
 
-        return NetworkConfig(address(entryPoint), DEFAULT_SENDER);
+        localNetworkConfig = NetworkConfig(address(entryPoint), DEFAULT_SENDER_ANVIL);
+
+        return localNetworkConfig;
     }
 }
