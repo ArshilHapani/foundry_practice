@@ -32,6 +32,7 @@ contract HelperConfig is Script, CodeConstants {
     }
 
     function getConfig() public view returns (NetworkConfig memory) {
+        console2.log("ChainId: ", block.chainid);
         return getConfigByChainId(block.chainid);
     }
 
