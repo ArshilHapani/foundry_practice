@@ -10,6 +10,7 @@ abstract contract CodeConstants {
     uint256 public constant ETH_SEPOLIA_CHAINID = 11155111;
     uint256 public constant ZKSYNC_SEPOLIA_CHAINID = 300;
     uint256 public constant LOCAL_CHAIN_ID = 31337;
+    uint256 public constant POLYGON_AMONY_CHAIN_ID = 80002;
     address public constant BURNER_WALLET = 0x7de7080aB6FFb3F1435378f3E7F15DfAE92c6F3a;
     address public constant DEFAULT_SENDER_ANVIL = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
     uint256 public constant DEFAULT_PRIVATE_KEY_ANVIL =
@@ -28,22 +29,22 @@ contract HelperConfig is Script, CodeConstants {
     constructor() {
         networkConfigs[ETH_SEPOLIA_CHAINID] = getEthSepoliaConfig();
         networkConfigs[ZKSYNC_SEPOLIA_CHAINID] = getZkSyncSepoliaConfig();
-        networkConfigs[LOCAL_CHAIN_ID] = getOrCreateAnvilConfig();
+        networkConfigs[POLYGON_AMONY_CHAIN_ID] = getPolygonAmonyConfig();
     }
 
-    function getConfig() public view returns (NetworkConfig memory) {
+    function getConfig() public returns (NetworkConfig memory) {
         console2.log("ChainId: ", block.chainid);
         return getConfigByChainId(block.chainid);
     }
 
-    function getConfigByChainId(uint256 _chainId) public view returns (NetworkConfig memory) {
-        if (_chainId == ETH_SEPOLIA_CHAINID) {
-            return getEthSepoliaConfig();
-        } else if (networkConfigs[_chainId].account != address(0)) {
+    function getConfigByChainId(uint256 _chainId) public returns (NetworkConfig memory) {
+        if (networkConfigs[_chainId].account != address(0)) {
             return networkConfigs[_chainId];
         } else if (_chainId == ZKSYNC_SEPOLIA_CHAINID) {
             // special case for zkSync (though zkSync dose'nt support script but still this is future proof... 🛡️)
             return getZkSyncSepoliaConfig();
+        } else if (_chainId == LOCAL_CHAIN_ID) {
+            return getOrCreateAnvilConfig();
         } else {
             revert HelperConfig__InvalidChainId();
         }
@@ -55,6 +56,10 @@ contract HelperConfig is Script, CodeConstants {
 
     function getZkSyncSepoliaConfig() internal pure returns (NetworkConfig memory) {
         return NetworkConfig(address(0), BURNER_WALLET); // native account abstraction
+    }
+
+    function getPolygonAmonyConfig() internal pure returns (NetworkConfig memory) {
+        return NetworkConfig(0x5FF137D4b0FDCD49DcA30c7CF57E578a026d2789, BURNER_WALLET);
     }
 
     function getOrCreateAnvilConfig() internal returns (NetworkConfig memory) {
