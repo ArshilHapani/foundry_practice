@@ -12,3 +12,9 @@ deploy-sepolia:
 
 deploy-polygon:
 	@forge script script/DeployMinimalAccount.s.sol --rpc-url $(POLYGON_AMONY_URL) --account metamask_default --broadcast
+
+send-user-operation-sepolia:
+	@forge script script/SendPackedUserOp.s.sol --rpc-url $(SEPOLIA_URL) --account metamask_default --broadcast -vvv
+
+send-user-operation-amony:
+	@forge script script/SendPackedUserOp.s.sol --rpc-url $(POLYGON_AMONY_URL) --account metamask_default --broadcast -vvv
