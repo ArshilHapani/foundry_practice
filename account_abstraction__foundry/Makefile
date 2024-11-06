@@ -18,3 +18,9 @@ send-user-operation-sepolia:
 
 send-user-operation-amony:
 	@forge script script/SendPackedUserOp.s.sol --rpc-url $(POLYGON_AMONY_URL) --account metamask_default --broadcast -vvv
+
+
+# zkSync stuff
+
+compile:
+	@forge compile --zksync --system-mode=true

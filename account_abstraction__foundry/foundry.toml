@@ -8,3 +8,6 @@ remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
     "foundry-devops/=lib/foundry-devops/",
 ]
+
+# it tells that we are using system contract for zkSync
+is-system = true
