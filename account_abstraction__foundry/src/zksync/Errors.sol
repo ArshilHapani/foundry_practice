@@ -7,4 +7,5 @@ library Errors {
     error ZKMinimalAccount__TransactionRequestIsNotFromBootLoaderOrOwner();
     error ZKMinimalAccount__TransactionExecutionFailed();
     error ZKMinimalAccount__TransactionPaymentFailed();
+    error ZKMinimalAccount__TransactionValidationFailed();
 }

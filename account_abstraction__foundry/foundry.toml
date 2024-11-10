@@ -11,3 +11,4 @@ remappings = [
 
 # it tells that we are using system contract for zkSync
 is-system = true
+via-ir = true

@@ -21,6 +21,5 @@ send-user-operation-amony:
 
 
 # zkSync stuff
-
 compile:
-	@forge compile --zksync --system-mode=true
+	@forge compile --zksync --system-mode=true --via-ir

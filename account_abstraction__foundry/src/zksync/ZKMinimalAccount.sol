@@ -20,7 +20,6 @@ import {
 import {INonceHolder} from "@cyfrin-foundry-era-contracts/system-contracts/contracts/interfaces/INonceHolder.sol";
 import {Utils} from "@cyfrin-foundry-era-contracts/system-contracts/contracts/libraries/Utils.sol";
 
-import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -50,7 +49,6 @@ import {Errors} from "./Errors.sol";
  */
 contract ZKMinimalAccount is IAccount, Ownable {
     using MemoryTransactionHelper for Transaction;
-    using MessageHashUtils for bytes32;
 
     constructor() Ownable(msg.sender) {}
 
@@ -80,7 +78,10 @@ contract ZKMinimalAccount is IAccount, Ownable {
     }
 
     function executeTransactionFromOutside(Transaction memory _transaction) external payable {
-        _validateTransaction(_transaction);
+        bytes4 magic = _validateTransaction(_transaction);
+        if (magic != ACCOUNT_VALIDATION_SUCCESS_MAGIC) {
+            revert Errors.ZKMinimalAccount__TransactionValidationFailed();
+        }
         _executeTransaction(_transaction);
     }
 
@@ -121,8 +122,8 @@ contract ZKMinimalAccount is IAccount, Ownable {
 
         // verify the signature
         bytes32 transactionHash = _transaction.encodeHash();
-        bytes32 signedTxHash = transactionHash.toEthSignedMessageHash();
-        address signer = ECDSA.recover(signedTxHash, _transaction.signature);
+        // bytes32 signedTxHash = transactionHash.toEthSignedMessageHash();
+        address signer = ECDSA.recover(transactionHash, _transaction.signature);
         bool isValid = signer == owner();
 
         // return the "magic" number
