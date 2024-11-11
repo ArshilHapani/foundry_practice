@@ -1,0 +1,31 @@
+name: Test Contracts
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test_contracts:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4 # copy the source code to the runner
+        with:
+          submodules: recursive
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Show Forge version
+        run: |
+          forge --version
+
+      - name: Run Forge fmt, build and test inside each contract
+        run: |
+          chmod +x ./scripts/execute-action.sh \
+          ./scripts/execute-action.sh
+        id: test

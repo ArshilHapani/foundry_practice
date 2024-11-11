@@ -1,0 +1,14 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+
+remappings = [
+    "@cyfrin-foundry-era-contracts/=lib/foundry-era-contracts/src",
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "foundry-devops/=lib/foundry-devops/",
+]
+
+# it tells that we are using system contract for zkSync
+is-system = true
+via-ir = true

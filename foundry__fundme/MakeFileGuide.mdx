@@ -1,0 +1,137 @@
+# Comprehensive Makefile Syntax Guide
+
+## Basic Structure
+
+A Makefile consists of rules in the following format:
+
+```makefile
+target: prerequisites
+    commands
+```
+
+- `target`: The file to be created or the action to be carried out
+- `prerequisites`: Files that the target depends on
+- `commands`: Shell commands to create the target (must be indented with a tab)
+
+## Variables
+
+Variables are defined and used as follows:
+
+```makefile
+VARIABLE_NAME = value
+ANOTHER_VAR := immediate value
+
+use_var:
+    echo $(VARIABLE_NAME)
+    echo ${ANOTHER_VAR}
+```
+
+- `=` for recursive expansion
+- `:=` for immediate expansion
+
+## Automatic Variables
+
+- `$@`: The target filename
+- `$<`: The first prerequisite filename
+- `$^`: The filenames of all prerequisites
+- `$*`: The stem with which a pattern rule matches
+
+## Pattern Rules
+
+```makefile
+%.o: %.c
+    $(CC) -c $(CFLAGS) $< -o $@
+```
+
+This rule compiles any `.c` file into a `.o` file.
+
+## Phony Targets
+
+```makefile
+.PHONY: clean
+
+clean:
+    rm -f *.o
+```
+
+Phony targets are not files, but represent actions.
+
+## Conditional Statements
+
+```makefile
+ifeq ($(CC),gcc)
+    CFLAGS = -O2
+else
+    CFLAGS = -O
+endif
+```
+
+Other conditionals: `ifneq`, `ifdef`, `ifndef`
+
+## Functions
+
+```makefile
+FILES = $(wildcard *.c)
+OBJS = $(patsubst %.c,%.o,$(FILES))
+```
+
+Common functions:
+
+- `wildcard`: Expand wildcards
+- `patsubst`: Pattern substitution
+- `shell`: Execute shell command
+- `foreach`: Loop over list
+
+## Include Other Makefiles
+
+```makefile
+include config.mk
+```
+
+## Suffix Rules (Deprecated but still used)
+
+```makefile
+.c.o:
+    $(CC) -c $(CFLAGS) $<
+```
+
+This is equivalent to the pattern rule `%.o: %.c`
+
+## Special Built-in Target Names
+
+- `.PHONY`: Declare phony targets
+- `.DEFAULT`: Default rule for unknown targets
+- `.PRECIOUS`: Preserve intermediate files
+- `.INTERMEDIATE`: Declare intermediate files
+- `.SECONDARY`: Prevent intermediate files from being automatically deleted
+
+## Multi-line Commands
+
+Use `\` for line continuation:
+
+```makefile
+long_command:
+    echo This is a very \
+         long command that \
+         spans multiple lines
+```
+
+## Error Handling
+
+Use `-` before a command to ignore its error:
+
+```makefile
+clean:
+    -rm temp_file
+    echo "Cleaned"
+```
+
+## Parallel Execution
+
+Use `-j` option when running make to enable parallel jobs:
+
+```bash
+make -j4
+```
+
+This guide covers the main syntax elements of Makefiles. Remember that Makefiles are sensitive to indentation, and commands under rules must be indented with a tab, not spaces.
