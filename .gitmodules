@@ -82,3 +82,6 @@
 [submodule "account_abstraction__foundry/lib/foundry-era-contracts"]
 	path = account_abstraction__foundry/lib/foundry-era-contracts
 	url = https://github.com/cyfrin/foundry-era-contracts
+[submodule "dao__foundry/lib/forge-std"]
+	path = dao__foundry/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
